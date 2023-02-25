@@ -3,6 +3,7 @@ package com.example.Student_Library_Management_System.Models;
 import com.example.Student_Library_Management_System.Enums.Genre;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +13,9 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @NotNull(message = "Please enter the Book name")
     private String name;
+    @NotNull(message = "Please enter the number of pages in the book")
     private int pages;
 
     @Enumerated(value = EnumType.STRING)

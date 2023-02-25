@@ -23,8 +23,7 @@ public class AuthorService {
         //Important step is : in the params : the object i
         //of type DTO but the repository interacts only with entities
 
-        //Solutoion : Convert authorEntryDto ---> Author
-
+        //Solution : Convert authorEntryDto ---> Author
         //Created an object of type Author
 
         Author author= new Author();

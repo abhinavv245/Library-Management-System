@@ -1,10 +1,18 @@
 package com.example.Student_Library_Management_System.DTOs;
 
+import javax.validation.constraints.NotNull;
+
 public class AuthorEntryDTO {
 
+    @NotNull(message = "Please enter the name of the author")
     private String name;
+
+
     private int age;
+
     private String country;
+
+    @NotNull(message = "Please enter the author rating")
     private double rating;
 
     public AuthorEntryDTO() {

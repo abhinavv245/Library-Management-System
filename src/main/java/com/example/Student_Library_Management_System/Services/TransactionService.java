@@ -3,6 +3,7 @@ package com.example.Student_Library_Management_System.Services;
 import com.example.Student_Library_Management_System.DTOs.IssueBookRequestDTO;
 import com.example.Student_Library_Management_System.Enums.CardStatus;
 import com.example.Student_Library_Management_System.Enums.TransactionStatus;
+import com.example.Student_Library_Management_System.Exceptions.IssueBookException;
 import com.example.Student_Library_Management_System.Models.Book;
 import com.example.Student_Library_Management_System.Models.Card;
 import com.example.Student_Library_Management_System.Models.Transaction;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -27,40 +29,43 @@ public class TransactionService {
     @Autowired
     CardRepository cardRepository;
 
-    public String issueBook(IssueBookRequestDTO issueBookRequestDTO) throws Exception {
+    public String issueBook(IssueBookRequestDTO issueBookRequestDTO) throws IssueBookException {
 
-       int bookId=issueBookRequestDTO.getBookId();
-       int cardId=issueBookRequestDTO.getCardId();
-
-        Book book=bookRepository.findById(bookId).get();
-        Card card=cardRepository.findById(cardId).get();
-
-      //Final goal is to make a transaction Entity, set its attribute
-        //and save it.
         Transaction transaction= new Transaction();
-
-        //setting the attributes
-        transaction.setBook(book);
-        transaction.setCard(card);
         transaction.setTransactionId(UUID.randomUUID().toString());
         transaction.setIssueOperation(true);
         transaction.setTransactionStatus(TransactionStatus.PENDING);
 
-        //attribute left is success/Failure
-        //Check for validations
-        if(book==null||book.isIssued()==true){
-            transaction.setTransactionStatus(TransactionStatus.FAILED);
-            transactionRepository.save(transaction);
-            throw new Exception("Book is not available");
-        }
-        if(card==null||card.getCardStatus()!= CardStatus.ACTIVATED){
-            transaction.setTransactionStatus(TransactionStatus.FAILED);
-            transactionRepository.save(transaction);
-            throw new Exception("Card is not valid");
-        }
+       int bookId=issueBookRequestDTO.getBookId();
+       int cardId=issueBookRequestDTO.getCardId();
+        Book book= new Book();
+        Card card= new Card();
+       try {
+           book=bookRepository.findById(bookId).orElseThrow(()->new IssueBookException("Book not found for book ID " +bookId));
+            card=cardRepository.findById(cardId).orElseThrow(()->new IssueBookException("Card not found for card ID " +cardId));
+           if(book.isIssued()==true){
+               throw new IssueBookException("Book is not available");
+           }
+           if(card.getCardStatus()!= CardStatus.ACTIVATED){
+               throw new IssueBookException("Card is not valid");
+           }
+       }catch(IssueBookException e) {
+           transaction.setTransactionStatus(TransactionStatus.FAILED);
+           transactionRepository.save(transaction);
+           throw new IssueBookException(e.getMessage());
+       }
+
+
+      //Final goal is to make a transaction Entity, set its attribute
+        //and save it.
+
+
+        //setting the attributes
+        transaction.setBook(book);
+        transaction.setCard(card);
 
         //We have reached a success case now.
-
+        transaction.setTransactionStatus(TransactionStatus.SUCCESS);
         //set attributes of a book
         book.setIssued(true);
         List<Transaction> transactionList=book.getTransactionList();
@@ -89,4 +94,11 @@ public class TransactionService {
         String transactionId=transactionList.get(0).getTransactionId();
         return transactionId;
     }
+
+    public String returnBook(IssueBookRequestDTO returnBook) {
+
+        return "book returned successfully";
+    }
+
+
 }

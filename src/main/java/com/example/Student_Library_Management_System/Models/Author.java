@@ -1,6 +1,7 @@
 package com.example.Student_Library_Management_System.Models;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -11,9 +12,12 @@ public class Author {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @NotNull(message = "Please enter the name of the author")
     private String name;
+
     private int age;
     private String country;
+    @NotNull(message = "Please enter the author rating")
     private double rating;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
