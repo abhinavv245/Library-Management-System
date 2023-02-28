@@ -2,6 +2,7 @@ package com.example.Student_Library_Management_System.Controllers;
 
 import com.example.Student_Library_Management_System.DTOs.AuthorEntryDTO;
 import com.example.Student_Library_Management_System.DTOs.AuthorResponseDTO;
+import com.example.Student_Library_Management_System.Exceptions.UserNotFoundException;
 import com.example.Student_Library_Management_System.Models.Author;
 import com.example.Student_Library_Management_System.Services.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ public class AuthorController {
     }
 
     @GetMapping("/getAuthor")
-    public ResponseEntity<AuthorResponseDTO> getAuthor(@RequestParam("id") Integer id){
+    public ResponseEntity<AuthorResponseDTO> getAuthor(@RequestParam("id") Integer id) throws UserNotFoundException {
         AuthorResponseDTO authorResponseDTO=authorService.getAuthor(id);
         return new ResponseEntity<>(authorResponseDTO,HttpStatus.OK);
     }

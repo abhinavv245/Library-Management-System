@@ -22,6 +22,7 @@ public class Transaction {
 
     private String transactionId;
 
+
     @CreationTimestamp
     private Date transactionDate;
 

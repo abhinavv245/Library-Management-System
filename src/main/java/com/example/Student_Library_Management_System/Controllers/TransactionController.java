@@ -1,6 +1,7 @@
 package com.example.Student_Library_Management_System.Controllers;
 
 import com.example.Student_Library_Management_System.DTOs.IssueBookRequestDTO;
+import com.example.Student_Library_Management_System.DTOs.ReturnBookDTO;
 import com.example.Student_Library_Management_System.Exceptions.IssueBookException;
 import com.example.Student_Library_Management_System.Services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,8 @@ public class TransactionController {
     }
 
     @PostMapping("/returnBook")
-    public ResponseEntity<String> returnBook(@RequestBody IssueBookRequestDTO returnBook){
-        String res=transactionService.returnBook(returnBook);
+    public ResponseEntity<ReturnBookDTO> returnBook(@RequestBody IssueBookRequestDTO returnBook){
+        ReturnBookDTO res=transactionService.returnBook(returnBook);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
     @GetMapping("/getTxnInfo")

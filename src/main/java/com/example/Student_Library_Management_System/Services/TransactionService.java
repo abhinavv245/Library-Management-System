@@ -1,6 +1,7 @@
 package com.example.Student_Library_Management_System.Services;
 
 import com.example.Student_Library_Management_System.DTOs.IssueBookRequestDTO;
+import com.example.Student_Library_Management_System.DTOs.ReturnBookDTO;
 import com.example.Student_Library_Management_System.Enums.CardStatus;
 import com.example.Student_Library_Management_System.Enums.TransactionStatus;
 import com.example.Student_Library_Management_System.Exceptions.IssueBookException;
@@ -13,9 +14,11 @@ import com.example.Student_Library_Management_System.Repositories.TransactionRep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Service
 public class TransactionService {
@@ -64,6 +67,7 @@ public class TransactionService {
         transaction.setBook(book);
         transaction.setCard(card);
 
+
         //We have reached a success case now.
         transaction.setTransactionStatus(TransactionStatus.SUCCESS);
         //set attributes of a book
@@ -95,10 +99,64 @@ public class TransactionService {
         return transactionId;
     }
 
-    public String returnBook(IssueBookRequestDTO returnBook) {
+    public ReturnBookDTO returnBook(IssueBookRequestDTO returnBook) {
+        ReturnBookDTO returnBookDTO= new ReturnBookDTO();
+        //transaction attributes
+         Transaction transaction= new Transaction();
+         transaction.setTransactionId(UUID.randomUUID().toString());
+         transaction.setIssueOperation(false);
+         transaction.setTransactionStatus(TransactionStatus.PENDING);
 
-        return "book returned successfully";
+         //find the book
+        int bookId=returnBook.getBookId();
+
+        //find card
+        int cardId= returnBook.getCardId();
+        //find the transaction
+        String issuedBookTransactionId=null;
+        long fine=0;
+       List<Transaction> transactionList= transactionRepository.getTransactionForBookAndCard(bookId,cardId);
+        Collections.sort(transactionList,(x,y)->{
+            return y.getTransactionDate().compareTo(x.getTransactionDate());
+        });
+        for(Transaction transaction1:transactionList){
+            if(transaction1.getTransactionStatus()==TransactionStatus.SUCCESS)
+                issuedBookTransactionId=transaction1.getTransactionId();
+            break;
+        }
+         Transaction t= transactionRepository.findByTransactionId(issuedBookTransactionId);
+        //calculate the fine
+        Date issueDate=t.getTransactionDate();
+        LocalDate issueDateLocal= issueDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate currentDate=LocalDate.now();
+        long days=DAYS.between(issueDateLocal,currentDate);
+        if(days>15) fine=((days-15)*10);
+        transaction.setTransactionStatus(TransactionStatus.SUCCESS);
+        //making changes in the book
+        Book book=bookRepository.findById(bookId).get();
+        book.setIssued(false);
+        List<Transaction> transactionList1=book.getTransactionList();
+        transactionList1.add(transaction);
+        book.setTransactionList(transactionList1);
+
+        //making changes in the card
+        Card card= cardRepository.findById(cardId).get();
+        List<Transaction> transactionListForCard=card.getTransactionList();
+        transactionListForCard.add(transaction);
+        card.setTransactionList(transactionListForCard);
+        cardRepository.save(card);
+
+
+        //set the returnBookDTO
+        returnBookDTO.setBookId(bookId);
+        returnBookDTO.setBookName(book.getName());
+        returnBookDTO.setCardId(cardId);
+        returnBookDTO.setStudentName(card.getStudent().getName());
+        returnBookDTO.setFine(fine);
+        returnBookDTO.setTransactionStatus(transaction.getTransactionStatus());
+        returnBookDTO.setTransactionId(transaction.getId());
+
+         return returnBookDTO;
+
     }
-
-
 }
